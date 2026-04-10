@@ -1,0 +1,67 @@
+# ============================================================
+#  Campsite Availability Checker — Configuration
+#  Copy this to config.yaml and fill in your email credentials.
+# ============================================================
+
+# --- Email notification settings ---
+email:
+  smtp_server: "smtp.gmail.com"
+  smtp_port: 587
+  sender_email: "your-email@gmail.com"
+  sender_password: "your-app-password"        # Gmail App Password
+  recipient_email: "your-email@gmail.com"
+
+# --- Check settings ---
+check_interval_minutes: 30
+nights: 2
+
+# --- Date ranges to monitor (MM/DD/YYYY) ---
+date_ranges:
+  - start: "05/01/2026"
+    end:   "05/31/2026"
+  - start: "06/01/2026"
+    end:   "06/30/2026"
+  - start: "07/01/2026"
+    end:   "07/31/2026"
+
+# --- Campgrounds (ReserveCalifornia) ---
+campgrounds:
+  - name: "New Brighton SB"
+    place_id: 685
+    region: "Santa Cruz"
+  - name: "Seacliff SB"
+    place_id: 714
+    region: "Santa Cruz"
+  - name: "Sunset SB"
+    place_id: 726
+    region: "Santa Cruz"
+  - name: "Manresa SB"
+    place_id: 672
+    region: "Santa Cruz"
+  - name: "Asilomar SB"
+    place_id: 1084
+    region: "Monterey"
+  - name: "Fort Ord Dunes SP"
+    place_id: 1125
+    region: "Monterey"
+  - name: "Pfeiffer Big Sur SP"
+    place_id: 690
+    region: "Big Sur"
+  - name: "Andrew Molera SP"
+    place_id: 1077
+    region: "Big Sur"
+  - name: "Limekiln SP"
+    place_id: 666
+    region: "Big Sur"
+  - name: "Julia Pfeiffer Burns SP"
+    place_id: 661
+    region: "Big Sur"
+
+# --- USFS campgrounds (recreation.gov) ---
+recreation_gov:
+  - name: "Kirk Creek Campground"
+    campground_id: 233116
+    region: "Big Sur"
+  - name: "Plaskett Creek Campground"
+    campground_id: 231959
+    region: "Big Sur"

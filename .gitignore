@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.checker_state.json
+.env
+config.yaml
