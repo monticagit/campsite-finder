@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campsite Finder</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #050505; --surface: #0d0d0d; --surface2: #141414;
+    --border: #1a1a1a; --border2: #252525;
+    --text: #c8c8c8; --text-dim: #666; --text-bright: #fff; --accent: #fff;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  .app { display: flex; min-height: 100vh; }
+  .sidebar { width: 320px; min-width: 320px; background: var(--surface); border-right: 1px solid var(--border); padding: 32px 24px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
+  .main { flex: 1; padding: 40px 48px; overflow-y: auto; max-height: 100vh; }
+  .sidebar h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-dim); margin-bottom: 4px; }
+  .filter-group { display: flex; flex-direction: column; gap: 6px; }
+  .filter-group label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-dim); }
+  .checkbox-grid { display: flex; flex-direction: column; gap: 2px; }
+  .checkbox-grid label { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 13px; color: var(--text); text-transform: none; letter-spacing: 0; transition: background 0.15s; }
+  .checkbox-grid label:hover { background: var(--surface2); }
+  .checkbox-grid input[type="checkbox"] { appearance: none; width: 14px; height: 14px; border: 1px solid var(--border2); border-radius: 3px; background: var(--surface2); cursor: pointer; position: relative; flex-shrink: 0; }
+  .checkbox-grid input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
+  .checkbox-grid input[type="checkbox"]:checked::after { content: ''; position: absolute; left: 4px; top: 1px; width: 4px; height: 8px; border: solid #000; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+  .source-tag { font-size: 9px; padding: 1px 5px; border-radius: 3px; background: var(--surface2); color: var(--text-dim); margin-left: auto; flex-shrink: 0; }
+  .date-row { display: flex; gap: 10px; }
+  .date-row > div { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  input[type="date"], input[type="number"] { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 8px 10px; border-radius: 5px; font-size: 13px; width: 100%; outline: none; transition: border-color 0.2s; color-scheme: dark; }
+  input[type="date"]:focus, input[type="number"]:focus { border-color: var(--border2); }
+  .divider { height: 1px; background: var(--border); margin: 4px 0; }
+  .btn-search { width: 100%; padding: 12px; background: var(--accent); color: #000; border: none; border-radius: 6px; font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: opacity 0.2s; }
+  .btn-search:hover { opacity: 0.85; }
+  .btn-search:disabled { opacity: 0.3; cursor: not-allowed; }
+  .sidebar-footer { margin-top: auto; display: flex; gap: 8px; }
+  .btn-secondary { flex: 1; padding: 10px; background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border); border-radius: 5px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s; }
+  .btn-secondary:hover { color: var(--text); border-color: var(--border2); }
+  .btn-secondary:disabled { opacity: 0.3; cursor: not-allowed; }
+  .header h1 { font-size: 28px; font-weight: 700; color: var(--text-bright); letter-spacing: -0.5px; }
+  .header p { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+  .metrics { display: flex; gap: 1px; background: var(--border); border-radius: 8px; overflow: hidden; margin: 32px 0; }
+  .metric { flex: 1; background: var(--surface); padding: 20px 24px; text-align: center; }
+  .metric .value { font-size: 32px; font-weight: 700; color: var(--text-bright); line-height: 1; }
+  .metric .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-top: 6px; }
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+  .tab { padding: 10px 20px; font-size: 13px; font-weight: 500; color: var(--text-dim); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; background: none; border-top: none; border-left: none; border-right: none; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--text-bright); border-bottom-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .camp-section { margin-bottom: 28px; }
+  .camp-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+  .camp-header h3 { font-size: 16px; font-weight: 600; color: var(--text-bright); }
+  .camp-header .count { font-size: 12px; color: var(--text-dim); }
+  .camp-header .tag { font-size: 10px; padding: 2px 8px; border-radius: 3px; background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border); }
+  .results-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .results-table thead th { text-align: left; padding: 8px 14px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-dim); background: var(--surface); border-bottom: 1px solid var(--border); }
+  .results-table tbody td { padding: 8px 14px; border-bottom: 1px solid var(--border); color: var(--text); }
+  .results-table tbody tr:hover td { background: var(--surface); }
+  .results-table .site-name { font-weight: 600; color: var(--text-bright); }
+  .results-table .day-badge { font-size: 10px; padding: 2px 6px; border-radius: 3px; background: var(--surface2); color: var(--text-dim); }
+  .results-table .day-badge.weekend { background: #1a1a0a; color: #aa9944; }
+  .empty-state { text-align: center; padding: 80px 40px; color: var(--text-dim); }
+  .empty-state h2 { font-size: 20px; color: var(--text); margin-bottom: 8px; text-transform: none; letter-spacing: 0; }
+  .loading { text-align: center; padding: 60px; }
+  .spinner { width: 24px; height: 24px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { color: var(--text-dim); font-size: 13px; }
+  .progress-bar { margin-top: 16px; width: 200px; height: 3px; background: var(--border); border-radius: 2px; margin-left: auto; margin-right: auto; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
+  .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 13px; color: var(--text); z-index: 1000; opacity: 0; transform: translateY(10px); transition: all 0.3s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .toast.error { border-color: #331111; color: #cc6666; }
+  .toast.success { border-color: #113311; color: #66cc66; }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  @media (max-width: 900px) {
+    .sidebar { width: 100%; min-width: auto; border-right: none; border-bottom: 1px solid var(--border); }
+    .app { flex-direction: column; }
+    .main { padding: 24px; max-height: none; }
+    .metrics { flex-wrap: wrap; }
+    .metric { min-width: 120px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <h2>Campsite Finder</h2>
+    <div class="filter-group">
+      <label>Region</label>
+      <div class="checkbox-grid" id="region-filters"></div>
+    </div>
+    <div class="divider"></div>
+    <div class="filter-group">
+      <label>Campgrounds</label>
+      <div class="checkbox-grid" id="camp-filters"></div>
+    </div>
+    <div class="divider"></div>
+    <div class="date-row">
+      <div><label>From</label><input type="date" id="start-date"></div>
+      <div><label>To</label><input type="date" id="end-date"></div>
+    </div>
+    <div class="filter-group">
+      <label>Nights</label>
+      <input type="number" id="nights" value="2" min="1" max="14">
+    </div>
+    <div class="checkbox-grid">
+      <label><input type="checkbox" id="weekend-only"> Weekends only (Fri / Sat)</label>
+      <label><input type="checkbox" id="consecutive" onchange="toggleConsecInput()"> Back-to-back nights only</label>
+      <div id="consec-input" style="display:none;padding:4px 8px;">
+        <label>Minimum consecutive nights</label>
+        <input type="number" id="consec-nights" value="2" min="2" max="7" style="margin-top:4px">
+      </div>
+    </div>
+    <div class="divider"></div>
+    <button class="btn-search" id="btn-search" onclick="doSearch()">Search</button>
+    <div class="sidebar-footer">
+      <button class="btn-secondary" id="btn-csv" onclick="downloadCSV()" disabled>Export CSV</button>
+      <button class="btn-secondary" onclick="selectAll()">Select All</button>
+      <button class="btn-secondary" onclick="selectNone()">Clear</button>
+    </div>
+  </aside>
+  <main class="main" id="main">
+    <div class="header">
+      <h1>Campsite Finder</h1>
+      <p>Monterey, Santa Cruz, Big Sur</p>
+    </div>
+    <div id="content">
+      <div class="empty-state">
+        <h2>Search for available campsites</h2>
+        <p>Select campgrounds and dates, then click Search.</p>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ------------------------------------------------------------------ */
+/*  Config                                                             */
+/* ------------------------------------------------------------------ */
+const RC_BASE = 'https://california-rdr.prod.cali.rd12.recreation-management.tylerapp.com/rdr/';
+const RC_HEADERS = {
+  'Content-Type': 'application/json',
+  'Accept': 'application/json, text/plain, */*',
+};
+const RG_BASE = 'https://www.recreation.gov/api/camps/availability/campground/';
+
+const CAMPS = [
+  { name: "New Brighton SB", place_id: 685, region: "Santa Cruz", source: "ReserveCalifornia" },
+  { name: "Seacliff SB", place_id: 714, region: "Santa Cruz", source: "ReserveCalifornia" },
+  { name: "Sunset SB", place_id: 726, region: "Santa Cruz", source: "ReserveCalifornia" },
+  { name: "Manresa SB", place_id: 672, region: "Santa Cruz", source: "ReserveCalifornia" },
+  { name: "Asilomar SB", place_id: 1084, region: "Monterey", source: "ReserveCalifornia" },
+  { name: "Fort Ord Dunes SP", place_id: 1125, region: "Monterey", source: "ReserveCalifornia" },
+  { name: "Pfeiffer Big Sur SP", place_id: 690, region: "Big Sur", source: "ReserveCalifornia" },
+  { name: "Andrew Molera SP", place_id: 1077, region: "Big Sur", source: "ReserveCalifornia" },
+  { name: "Limekiln SP", place_id: 666, region: "Big Sur", source: "ReserveCalifornia" },
+  { name: "Julia Pfeiffer Burns SP", place_id: 661, region: "Big Sur", source: "ReserveCalifornia" },
+  { name: "Kirk Creek", campground_id: 233116, region: "Big Sur", source: "Recreation.gov" },
+  { name: "Plaskett Creek", campground_id: 231959, region: "Big Sur", source: "Recreation.gov" },
+];
+const REGIONS = [...new Set(CAMPS.map(c => c.region))].sort();
+let currentResults = [];
+
+/* ------------------------------------------------------------------ */
+/*  Init                                                               */
+/* ------------------------------------------------------------------ */
+function init() {
+  const today = new Date();
+  const from = new Date(today); from.setDate(from.getDate() + 1);
+  const to = new Date(today); to.setDate(to.getDate() + 60);
+  document.getElementById('start-date').value = fmt(from);
+  document.getElementById('end-date').value = fmt(to);
+  const el = document.getElementById('region-filters');
+  REGIONS.forEach(r => { el.innerHTML += `<label><input type="checkbox" checked data-region="${r}" onchange="onRegionChange()"> ${r}</label>`; });
+  renderCampFilters();
+}
+
+function fmt(d) { return d.toISOString().split('T')[0]; }
+function getSelectedRegions() { return [...document.querySelectorAll('[data-region]:checked')].map(el => el.dataset.region); }
+function onRegionChange() { renderCampFilters(); }
+
+function renderCampFilters() {
+  const regions = getSelectedRegions();
+  const el = document.getElementById('camp-filters');
+  el.innerHTML = '';
+  CAMPS.filter(c => regions.includes(c.region)).forEach(c => {
+    el.innerHTML += `<label><input type="checkbox" checked data-camp="${c.name}"> ${c.name} <span class="source-tag">${c.source === 'Recreation.gov' ? 'Rec.gov' : 'RC'}</span></label>`;
+  });
+}
+
+function selectAll() { document.querySelectorAll('[data-camp]').forEach(el => el.checked = true); document.querySelectorAll('[data-region]').forEach(el => el.checked = true); renderCampFilters(); }
+function selectNone() { document.querySelectorAll('[data-camp]').forEach(el => el.checked = false); }
+function getSelectedCamps() { const names = new Set([...document.querySelectorAll('[data-camp]:checked')].map(el => el.dataset.camp)); return CAMPS.filter(c => names.has(c.name)); }
+function toggleConsecInput() { document.getElementById('consec-input').style.display = document.getElementById('consecutive').checked ? 'block' : 'none'; }
+
+/* ------------------------------------------------------------------ */
+/*  ReserveCalifornia API (client-side)                                */
+/* ------------------------------------------------------------------ */
+function rcBody(placeId, startDate, nights, facilityId) {
+  const b = {
+    PlaceId: placeId, Latitude: 0, Longitude: 0, HighlightedPlaceId: 0,
+    StartDate: startDate, Nights: nights,
+    CountNearby: !facilityId, NearbyLimit: 100, NearbyOnlyAvailable: false,
+    NearbyCountLimit: 10, Sort: 'Distance', CustomerId: 0, RefreshFavourites: true,
+    IsADA: false, UnitCategoryId: 0, SleepingUnitId: 0, MinVehicleLength: 0,
+    UnitTypesGroupIds: [],
+  };
+  if (facilityId) b.FacilityId = facilityId;
+  return b;
+}
+
+async function rcFetchJson(url, body) {
+  const r = await fetch(url, { method: 'POST', headers: RC_HEADERS, body: JSON.stringify(body) });
+  if (!r.ok) return null;
+  return r.json();
+}
+
+async function checkRC(cg, startDate, endDate, nights) {
+  const results = [];
+  const pid = cg.place_id;
+  const dateStr = `${String(startDate.getMonth()+1).padStart(2,'0')}/${String(startDate.getDate()).padStart(2,'0')}/${startDate.getFullYear()}`;
+
+  // Get facilities
+  const placeData = await rcFetchJson(RC_BASE + 'search/place', rcBody(pid, dateStr, nights));
+  if (!placeData) return results;
+  const facs = (placeData.SelectedPlace || {}).Facilities || {};
+
+  for (const [fid, finfo] of Object.entries(facs)) {
+    if (typeof finfo !== 'object') continue;
+    const cat = (finfo.Category || '').toLowerCase();
+    if (['day use', 'tours', 'picnic'].includes(cat)) continue;
+    const fname = finfo.Name || `Facility ${fid}`;
+
+    let checkDt = new Date(startDate);
+    while (checkDt <= endDate) {
+      const ds = `${String(checkDt.getMonth()+1).padStart(2,'0')}/${String(checkDt.getDate()).padStart(2,'0')}/${checkDt.getFullYear()}`;
+      const grid = await rcFetchJson(RC_BASE + 'search/grid', rcBody(pid, ds, nights, parseInt(fid)));
+      if (grid) {
+        const fac = grid.Facility || {};
+        for (const [uid, unit] of Object.entries(fac.Units || {})) {
+          for (const [dstr, sl] of Object.entries(unit.Slices || {})) {
+            if (sl && sl.IsFree) {
+              try {
+                const dt = new Date(dstr);
+                if (dt < startDate || dt > endDate) continue;
+                results.push({
+                  campground: cg.name, region: cg.region, facility: fname,
+                  site: (unit.Name || `Site ${uid}`).replace(/\u00a0/g, ' '),
+                  date: dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }),
+                  day: dt.toLocaleDateString('en-US', { weekday: 'long' }),
+                  dateObj: dt,
+                  source: 'ReserveCalifornia',
+                  link: `https://www.reservecalifornia.com/CaliforniaWebHome/Facilities/SearchViewUnitAvailab498702702702702702?parkId=${pid}`,
+                });
+              } catch(e) {}
+            }
+          }
+        }
+      }
+      checkDt = new Date(checkDt.getTime() + 14 * 86400000);
+      await sleep(300);
+    }
+  }
+  return results;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Recreation.gov API (client-side)                                   */
+/* ------------------------------------------------------------------ */
+async function checkRG(cg, startDate, endDate, nights) {
+  const results = [];
+  const cid = cg.campground_id;
+  let current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+
+  while (current <= endDate) {
+    const monthStr = `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-01`;
+    try {
+      const r = await fetch(`${RG_BASE}${cid}/month?start_date=${monthStr}T00%3A00%3A00.000Z`);
+      if (r.ok) {
+        const data = await r.json();
+        for (const [sid, site] of Object.entries(data.campsites || {})) {
+          const avails = site.availabilities || {};
+          for (const [ds, status] of Object.entries(avails)) {
+            if (status !== 'Available') continue;
+            const dt = new Date(ds);
+            if (dt < startDate || dt > endDate) continue;
+            if (nights > 1) {
+              let ok = true;
+              for (let n = 1; n < nights; n++) {
+                const nd = new Date(dt.getTime() + n * 86400000).toISOString().replace(/\.\d+Z/, 'Z').replace(/T\d+/, 'T00:00:00');
+                if (avails[nd] !== 'Available') { ok = false; break; }
+              }
+              if (!ok) continue;
+            }
+            results.push({
+              campground: cg.name, region: cg.region,
+              facility: (site.loop || '').replace(/\u00a0/g, ' '),
+              site: (site.site || sid).replace(/\u00a0/g, ' '),
+              date: dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }),
+              day: dt.toLocaleDateString('en-US', { weekday: 'long' }),
+              dateObj: dt,
+              source: 'Recreation.gov',
+              link: `https://www.recreation.gov/camping/campgrounds/${cid}`,
+            });
+          }
+        }
+      }
+    } catch(e) {}
+    current = new Date(current.getFullYear(), current.getMonth() + 1, 1);
+    await sleep(300);
+  }
+  return results;
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ------------------------------------------------------------------ */
+/*  Search                                                             */
+/* ------------------------------------------------------------------ */
+async function doSearch() {
+  const camps = getSelectedCamps();
+  if (!camps.length) { showToast('Select at least one campground', 'error'); return; }
+
+  const startDate = new Date(document.getElementById('start-date').value + 'T00:00:00');
+  const endDate = new Date(document.getElementById('end-date').value + 'T00:00:00');
+  const nights = parseInt(document.getElementById('nights').value) || 2;
+  const weekendOnly = document.getElementById('weekend-only').checked;
+  const consecutiveOn = document.getElementById('consecutive').checked;
+  const consecutiveNights = consecutiveOn ? (parseInt(document.getElementById('consec-nights').value) || 2) : 0;
+
+  const btn = document.getElementById('btn-search');
+  btn.disabled = true;
+  btn.textContent = 'SEARCHING...';
+
+  document.getElementById('content').innerHTML = `
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="loading-text" id="loading-text">Checking ${camps.length} campground(s)...</div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>`;
+
+  let allResults = [];
+
+  for (let i = 0; i < camps.length; i++) {
+    const cg = camps[i];
+    const pct = Math.round(((i + 1) / camps.length) * 100);
+    const lt = document.getElementById('loading-text');
+    const pf = document.getElementById('progress-fill');
+    if (lt) lt.textContent = `Checking ${cg.name}... (${i+1}/${camps.length})`;
+    if (pf) pf.style.width = pct + '%';
+
+    try {
+      if (cg.source === 'ReserveCalifornia') {
+        allResults = allResults.concat(await checkRC(cg, startDate, endDate, nights));
+      } else {
+        allResults = allResults.concat(await checkRG(cg, startDate, endDate, nights));
+      }
+    } catch(e) {
+      console.error(`Failed ${cg.name}:`, e);
+    }
+  }
+
+  // Weekend filter
+  if (weekendOnly) {
+    allResults = allResults.filter(r => r.day === 'Friday' || r.day === 'Saturday');
+  }
+
+  // Deduplicate
+  const seen = new Set();
+  const deduped = [];
+  for (const r of allResults) {
+    const key = `${r.campground}|${r.facility}|${r.site}|${r.date}`;
+    if (!seen.has(key)) { seen.add(key); deduped.push(r); }
+  }
+
+  // Consecutive filter
+  let final = deduped;
+  if (consecutiveNights > 1) {
+    const siteDates = {};
+    for (const r of deduped) {
+      const key = `${r.campground}|${r.facility}|${r.site}`;
+      if (!siteDates[key]) siteDates[key] = new Set();
+      if (r.dateObj) siteDates[key].add(r.dateObj.toDateString());
+    }
+    final = deduped.filter(r => {
+      if (!r.dateObj) return false;
+      const key = `${r.campground}|${r.facility}|${r.site}`;
+      const dates = siteDates[key];
+      for (let d = 0; d < consecutiveNights; d++) {
+        const check = new Date(r.dateObj.getTime() + d * 86400000).toDateString();
+        if (!dates.has(check)) return false;
+      }
+      return true;
+    });
+  }
+
+  currentResults = final;
+  renderResults(final);
+  document.getElementById('btn-csv').disabled = !final.length;
+  btn.disabled = false;
+  btn.textContent = 'SEARCH';
+}
+
+/* ------------------------------------------------------------------ */
+/*  Render                                                             */
+/* ------------------------------------------------------------------ */
+function renderResults(results) {
+  const el = document.getElementById('content');
+  if (!results.length) {
+    el.innerHTML = `<div class="empty-state"><h2>No availability</h2><p>Try wider dates or more campgrounds.</p></div>`;
+    return;
+  }
+
+  const campgrounds = new Set(results.map(r => r.campground));
+  const dates = new Set(results.map(r => r.date));
+  const sources = new Set(results.map(r => r.source));
+  const regions = [...new Set(results.map(r => r.region))].sort();
+
+  let html = `
+    <div class="metrics">
+      <div class="metric"><div class="value">${campgrounds.size}</div><div class="label">Campgrounds</div></div>
+      <div class="metric"><div class="value">${results.length}</div><div class="label">Sites</div></div>
+      <div class="metric"><div class="value">${dates.size}</div><div class="label">Dates</div></div>
+      <div class="metric"><div class="value">${sources.size}</div><div class="label">Sources</div></div>
+    </div>
+    <div class="tabs" id="tabs">
+      ${regions.map((r, i) => `<button class="tab ${i === 0 ? 'active' : ''}" onclick="switchTab('${r}', this)">${r}</button>`).join('')}
+    </div>`;
+
+  regions.forEach((reg, i) => {
+    const regResults = results.filter(r => r.region === reg);
+    const campNames = [...new Set(regResults.map(r => r.campground))];
+    html += `<div class="tab-content ${i === 0 ? 'active' : ''}" data-tab="${reg}">`;
+    campNames.forEach(camp => {
+      const cr = regResults.filter(r => r.campground === camp);
+      html += `
+        <div class="camp-section">
+          <div class="camp-header">
+            <h3>${camp}</h3>
+            <span class="count">${cr.length} site(s)</span>
+            <span class="tag">${cr[0].source}</span>
+          </div>
+          <table class="results-table">
+            <thead><tr><th>Facility</th><th>Site</th><th>Date</th><th>Day</th><th></th></tr></thead>
+            <tbody>
+              ${cr.map(r => `<tr>
+                <td>${r.facility}</td>
+                <td class="site-name">${r.site}</td>
+                <td>${r.date}</td>
+                <td><span class="day-badge ${['Friday','Saturday','Sunday'].includes(r.day)?'weekend':''}">${r.day.slice(0,3)}</span></td>
+                <td>${r.link?`<a href="${r.link}" target="_blank" style="color:#555;font-size:11px;text-decoration:none;border:1px solid #222;padding:3px 8px;border-radius:3px" onmouseover="this.style.color='#aaa'" onmouseout="this.style.color='#555'">Book</a>`:''}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    });
+    html += `</div>`;
+  });
+  el.innerHTML = html;
+}
+
+function switchTab(region, tabEl) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+  document.querySelector(`[data-tab="${region}"]`).classList.add('active');
+}
+
+/* ------------------------------------------------------------------ */
+/*  CSV                                                                */
+/* ------------------------------------------------------------------ */
+function downloadCSV() {
+  if (!currentResults.length) return;
+  const headers = ['Campground','Region','Facility','Site','Date','Day','Source','Link'];
+  const csv = [headers.join(','), ...currentResults.map(r =>
+    [r.campground,r.region,r.facility,r.site,r.date,r.day,r.source,r.link||''].map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')
+  )].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'campsite_availability.csv';
+  a.click();
+}
+
+function showToast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  setTimeout(() => el.className = 'toast', 3500);
+}
+
+init();
+</script>
+</body>
+</html>
