@@ -24,8 +24,29 @@ date_ranges:
   - start: "07/01/2026"
     end:   "07/31/2026"
 
-# --- Campgrounds (ReserveCalifornia) ---
+# --- Campgrounds (ReserveCalifornia) — Beach camping by region ---
 campgrounds:
+  # NorCal Coast
+  - name: "Gold Bluffs Beach"
+    place_id: 697
+    region: "NorCal Coast"
+  - name: "MacKerricher SP"
+    place_id: 668
+    region: "NorCal Coast"
+  - name: "Westport-Union Landing SB"
+    place_id: 1235
+    region: "NorCal Coast"
+  - name: "Manchester SP"
+    place_id: 671
+    region: "NorCal Coast"
+  - name: "Sonoma Coast SP"
+    place_id: 718
+    region: "NorCal Coast"
+  - name: "Half Moon Bay SB"
+    place_id: 652
+    region: "NorCal Coast"
+
+  # Santa Cruz
   - name: "New Brighton SB"
     place_id: 685
     region: "Santa Cruz"
@@ -38,12 +59,16 @@ campgrounds:
   - name: "Manresa SB"
     place_id: 672
     region: "Santa Cruz"
+
+  # Monterey
   - name: "Asilomar SB"
     place_id: 1084
     region: "Monterey"
   - name: "Fort Ord Dunes SP"
     place_id: 1125
     region: "Monterey"
+
+  # Big Sur
   - name: "Pfeiffer Big Sur SP"
     place_id: 690
     region: "Big Sur"
@@ -56,6 +81,87 @@ campgrounds:
   - name: "Julia Pfeiffer Burns SP"
     place_id: 661
     region: "Big Sur"
+
+  # SLO Coast
+  - name: "Hearst San Simeon SP"
+    place_id: 713
+    region: "SLO Coast"
+  - name: "Morro Bay SP"
+    place_id: 680
+    region: "SLO Coast"
+  - name: "Morro Strand SB"
+    place_id: 681
+    region: "SLO Coast"
+  - name: "Montana de Oro SP"
+    place_id: 679
+    region: "SLO Coast"
+  - name: "Pismo SB"
+    place_id: 691
+    region: "SLO Coast"
+
+  # Santa Barbara
+  - name: "Gaviota SP"
+    place_id: 646
+    region: "Santa Barbara"
+  - name: "Refugio SB"
+    place_id: 699
+    region: "Santa Barbara"
+  - name: "El Capitan SB"
+    place_id: 8
+    region: "Santa Barbara"
+  - name: "Carpinteria SB"
+    place_id: 6
+    region: "Santa Barbara"
+
+  # Ventura
+  - name: "Emma Wood SB"
+    place_id: 642
+    region: "Ventura"
+  - name: "San Buenaventura SB"
+    place_id: 1202
+    region: "Ventura"
+  - name: "McGrath SB"
+    place_id: 677
+    region: "Ventura"
+  - name: "Point Mugu SP"
+    place_id: 694
+    region: "Ventura"
+
+  # Malibu / LA
+  - name: "Leo Carrillo SP"
+    place_id: 665
+    region: "Malibu / LA"
+  - name: "Dockweiler SB"
+    place_id: 1117
+    region: "Malibu / LA"
+
+  # Orange County
+  - name: "Bolsa Chica SB"
+    place_id: 619
+    region: "Orange County"
+  - name: "Huntington SB"
+    place_id: 658
+    region: "Orange County"
+  - name: "Crystal Cove SP"
+    place_id: 635
+    region: "Orange County"
+  - name: "Doheny SB"
+    place_id: 639
+    region: "Orange County"
+
+  # San Diego
+  - name: "San Onofre SB"
+    place_id: 712
+    region: "San Diego"
+  - name: "San Clemente SB"
+    place_id: 707
+    region: "San Diego"
+  - name: "San Elijo SB"
+    place_id: 709
+    region: "San Diego"
+  - name: "South Carlsbad SB"
+    place_id: 720
+    region: "San Diego"
 
 # --- USFS campgrounds (recreation.gov) ---
 recreation_gov:

@@ -75,6 +75,25 @@
     gap: 2px;
   }
 
+  .checkbox-grid.scrollable {
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .region-heading {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-dim);
+    padding: 8px 8px 2px;
+    margin-top: 4px;
+    border-top: 1px solid var(--border);
+  }
+
+  .region-heading:first-child { border-top: none; margin-top: 0; }
+
   .checkbox-grid label {
     display: flex;
     align-items: center;
@@ -426,7 +445,7 @@
 
     <div class="filter-group">
       <label>Campgrounds</label>
-      <div class="checkbox-grid" id="camp-filters"></div>
+      <div class="checkbox-grid scrollable" id="camp-filters"></div>
     </div>
 
     <div class="divider"></div>
@@ -481,7 +500,7 @@
   <main class="main" id="main">
     <div class="header">
       <h1>Campsite Finder</h1>
-      <p>Monterey, Santa Cruz, Big Sur</p>
+      <p>California Beach Camping</p>
     </div>
 
     <div id="content">
@@ -497,18 +516,81 @@
 
 <script>
 const CAMPS = [
+  // NorCal Coast
+  { name: "Gold Bluffs Beach", place_id: 697, region: "NorCal Coast", source: "ReserveCalifornia" },
+  { name: "MacKerricher SP", place_id: 668, region: "NorCal Coast", source: "ReserveCalifornia" },
+  { name: "Westport-Union Landing SB", place_id: 1235, region: "NorCal Coast", source: "ReserveCalifornia" },
+  { name: "Manchester SP", place_id: 671, region: "NorCal Coast", source: "ReserveCalifornia" },
+  { name: "Sonoma Coast SP", place_id: 718, region: "NorCal Coast", source: "ReserveCalifornia" },
+  { name: "Half Moon Bay SB", place_id: 652, region: "NorCal Coast", source: "ReserveCalifornia" },
+  // Santa Cruz
   { name: "New Brighton SB", place_id: 685, region: "Santa Cruz", source: "ReserveCalifornia" },
   { name: "Seacliff SB", place_id: 714, region: "Santa Cruz", source: "ReserveCalifornia" },
   { name: "Sunset SB", place_id: 726, region: "Santa Cruz", source: "ReserveCalifornia" },
   { name: "Manresa SB", place_id: 672, region: "Santa Cruz", source: "ReserveCalifornia" },
+  // Monterey
   { name: "Asilomar SB", place_id: 1084, region: "Monterey", source: "ReserveCalifornia" },
   { name: "Fort Ord Dunes SP", place_id: 1125, region: "Monterey", source: "ReserveCalifornia" },
+  // Big Sur
   { name: "Pfeiffer Big Sur SP", place_id: 690, region: "Big Sur", source: "ReserveCalifornia" },
   { name: "Andrew Molera SP", place_id: 1077, region: "Big Sur", source: "ReserveCalifornia" },
   { name: "Limekiln SP", place_id: 666, region: "Big Sur", source: "ReserveCalifornia" },
   { name: "Julia Pfeiffer Burns SP", place_id: 661, region: "Big Sur", source: "ReserveCalifornia" },
   { name: "Kirk Creek", campground_id: 233116, region: "Big Sur", source: "Recreation.gov" },
   { name: "Plaskett Creek", campground_id: 231959, region: "Big Sur", source: "Recreation.gov" },
+  // SLO Coast
+  { name: "Hearst San Simeon SP", place_id: 713, region: "SLO Coast", source: "ReserveCalifornia" },
+  { name: "Morro Bay SP", place_id: 680, region: "SLO Coast", source: "ReserveCalifornia" },
+  { name: "Morro Strand SB", place_id: 681, region: "SLO Coast", source: "ReserveCalifornia" },
+  { name: "Montana de Oro SP", place_id: 679, region: "SLO Coast", source: "ReserveCalifornia" },
+  { name: "Pismo SB", place_id: 691, region: "SLO Coast", source: "ReserveCalifornia" },
+  // Santa Barbara
+  { name: "Gaviota SP", place_id: 646, region: "Santa Barbara", source: "ReserveCalifornia" },
+  { name: "Refugio SB", place_id: 699, region: "Santa Barbara", source: "ReserveCalifornia" },
+  { name: "El Capitan SB", place_id: 8, region: "Santa Barbara", source: "ReserveCalifornia" },
+  { name: "Carpinteria SB", place_id: 6, region: "Santa Barbara", source: "ReserveCalifornia" },
+  // Ventura
+  { name: "Emma Wood SB", place_id: 642, region: "Ventura", source: "ReserveCalifornia" },
+  { name: "San Buenaventura SB", place_id: 1202, region: "Ventura", source: "ReserveCalifornia" },
+  { name: "McGrath SB", place_id: 677, region: "Ventura", source: "ReserveCalifornia" },
+  { name: "Point Mugu SP", place_id: 694, region: "Ventura", source: "ReserveCalifornia" },
+  // Malibu / LA
+  { name: "Leo Carrillo SP", place_id: 665, region: "Malibu / LA", source: "ReserveCalifornia" },
+  { name: "Dockweiler SB", place_id: 1117, region: "Malibu / LA", source: "ReserveCalifornia" },
+  // Orange County
+  { name: "Bolsa Chica SB", place_id: 619, region: "Orange County", source: "ReserveCalifornia" },
+  { name: "Huntington SB", place_id: 658, region: "Orange County", source: "ReserveCalifornia" },
+  { name: "Crystal Cove SP", place_id: 635, region: "Orange County", source: "ReserveCalifornia" },
+  { name: "Doheny SB", place_id: 639, region: "Orange County", source: "ReserveCalifornia" },
+  // San Diego
+  { name: "San Onofre SB", place_id: 712, region: "San Diego", source: "ReserveCalifornia" },
+  { name: "San Clemente SB", place_id: 707, region: "San Diego", source: "ReserveCalifornia" },
+  { name: "San Elijo SB", place_id: 709, region: "San Diego", source: "ReserveCalifornia" },
+  { name: "South Carlsbad SB", place_id: 720, region: "San Diego", source: "ReserveCalifornia" },
+  // Lake Tahoe
+  { name: "D.L. Bliss SP", place_id: 637, region: "Lake Tahoe", source: "ReserveCalifornia" },
+  { name: "Sugar Pine Point SP", place_id: 724, region: "Lake Tahoe", source: "ReserveCalifornia" },
+  { name: "Emerald Bay SP", place_id: 641, region: "Lake Tahoe", source: "ReserveCalifornia" },
+  { name: "Fallen Leaf", campground_id: 232769, region: "Lake Tahoe", source: "Recreation.gov" },
+  { name: "Nevada Beach", campground_id: 232768, region: "Lake Tahoe", source: "Recreation.gov" },
+  { name: "William Kent", campground_id: 232874, region: "Lake Tahoe", source: "Recreation.gov" },
+  // Mammoth / Eastern Sierra
+  { name: "New Shady Rest", campground_id: 233860, region: "Mammoth / Eastern Sierra", source: "Recreation.gov" },
+  { name: "Old Shady Rest", campground_id: 233830, region: "Mammoth / Eastern Sierra", source: "Recreation.gov" },
+  { name: "Sherwin Creek", campground_id: 232271, region: "Mammoth / Eastern Sierra", source: "Recreation.gov" },
+  { name: "Lake Mary", campground_id: 233404, region: "Mammoth / Eastern Sierra", source: "Recreation.gov" },
+  { name: "Twin Lakes", campground_id: 234329, region: "Mammoth / Eastern Sierra", source: "Recreation.gov" },
+  { name: "Convict Lake", campground_id: 234311, region: "Mammoth / Eastern Sierra", source: "Recreation.gov" },
+  { name: "June Lake", campground_id: 232268, region: "Mammoth / Eastern Sierra", source: "Recreation.gov" },
+  { name: "Oh Ridge", campground_id: 232269, region: "Mammoth / Eastern Sierra", source: "Recreation.gov" },
+  // Yosemite
+  { name: "Upper Pines", campground_id: 232447, region: "Yosemite", source: "Recreation.gov" },
+  { name: "Lower Pines", campground_id: 232450, region: "Yosemite", source: "Recreation.gov" },
+  { name: "North Pines", campground_id: 232449, region: "Yosemite", source: "Recreation.gov" },
+  { name: "Hodgdon Meadow", campground_id: 232451, region: "Yosemite", source: "Recreation.gov" },
+  { name: "Crane Flat", campground_id: 232452, region: "Yosemite", source: "Recreation.gov" },
+  { name: "Wawona", campground_id: 232446, region: "Yosemite", source: "Recreation.gov" },
+  { name: "Tuolumne Meadows", campground_id: 232448, region: "Yosemite", source: "Recreation.gov" },
 ];
 
 const REGIONS = [...new Set(CAMPS.map(c => c.region))].sort();
@@ -546,7 +628,13 @@ function renderCampFilters() {
   const regions = getSelectedRegions();
   const el = document.getElementById('camp-filters');
   el.innerHTML = '';
-  CAMPS.filter(c => regions.includes(c.region)).forEach(c => {
+  const filtered = CAMPS.filter(c => regions.includes(c.region));
+  let lastRegion = '';
+  filtered.forEach(c => {
+    if (c.region !== lastRegion) {
+      el.innerHTML += `<div class="region-heading">${c.region}</div>`;
+      lastRegion = c.region;
+    }
     el.innerHTML += `<label><input type="checkbox" checked data-camp="${c.name}"> ${c.name} <span class="source-tag">${c.source === 'Recreation.gov' ? 'Rec.gov' : 'RC'}</span></label>`;
   });
 }
